@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_ACCESS_KEY_ID = 'AWS_SECRET_KEY'       // Replace with your AWS Access Key
+        AWS_SECRET_ACCESS_KEY = 'AWS_SECRET_KEY_PASS' // Replace with your AWS Secret Key
+        AWS_REGION = 'ap-south-1'                       // Replace with your desired AWS Region
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                // Fetch the Terraform files from GitHub
+                git branch: 'main', url: 'https://github.com/your-repo/terraform-project.git'
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                script {
+                    // Initialize Terraform
+                    sh 'terraform init'
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                script {
+                    // Check the plan (optional but recommended)
+                    sh 'terraform plan -out=tfplan'
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                script {
+                    // Apply the Terraform plan
+                    sh 'terraform apply -auto-approve'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up workspace...'
+            cleanWs() // Cleans up the workspace after execution
+        }
+        success {
+            echo 'Terraform EC2 instance created successfully!'
+        }
+        failure {
+            echo 'Terraform execution failed!'
+        }
+    }
+}
